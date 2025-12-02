@@ -68,7 +68,7 @@ async function searchNearbyRecursive(
   center: Location,
   radius: number,
   type: string,
-  minRadius: number = 500,
+  minRadius: number = 20,
   depth: number = 0
 ): Promise<PlaceBasic[]> {
   const indent = "  ".repeat(depth);
