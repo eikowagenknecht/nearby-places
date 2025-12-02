@@ -8,7 +8,6 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-const RADIUS_METERS = 1000;
 const PLACE_TYPES = ["restaurant", "bar", "cafe", "bakery"];
 
 // API call tracking
@@ -273,9 +272,20 @@ function loadExcludeList(): Set<string> {
 
 async function main() {
   const address = process.argv[2];
+  const radiusArg = process.argv[3];
 
   if (!address) {
-    console.error("Usage: npx ts-node fetch-places.ts \"Your Address, City\"");
+    console.error("Usage: npx ts-node fetch-places.ts \"Your Address, City\" [radius_in_meters]");
+    console.error("Example: npx ts-node fetch-places.ts \"Kröpcke, Hannover\" 1000");
+    console.error("Default radius: 100m");
+    process.exit(1);
+  }
+
+  // Parse radius with default of 100m
+  const RADIUS_METERS = radiusArg ? parseInt(radiusArg, 10) : 100;
+
+  if (isNaN(RADIUS_METERS) || RADIUS_METERS <= 0) {
+    console.error("Error: Radius must be a positive number");
     process.exit(1);
   }
 

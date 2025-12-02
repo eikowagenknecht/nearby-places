@@ -6,7 +6,7 @@ Find and explore restaurants, bars, cafes, and bakeries near any address using G
 
 ## Features
 
-- 🔍 Searches by address with configurable radius (default: 1000m)
+- 🔍 Searches by address with configurable radius via command line (default: 100m)
 - 🎯 **Smart adaptive search**: Automatically subdivides large search areas only when needed to find all places (no API limit issues)
 - 📊 Fetches ratings, reviews, prices, hours, and distances
 - 📋 Three visualizations:
@@ -50,6 +50,8 @@ cp .env.example .env
 **3. Fetch places:**
 ```bash
 npm start "Kröpcke, 30159 Hannover"
+# Or specify custom radius in meters (default: 100m)
+npm start "Kröpcke, 30159 Hannover" 1000
 ```
 
 **4. Generate visualizations:**
@@ -81,9 +83,14 @@ Check the [pricing page](https://mapsplatform.google.com/pricing/#pay-as-you-go)
 
 ## Customization
 
-Edit `fetch-places.ts` to change:
-- `RADIUS_METERS`: Search radius in meters (default: 1000)
-- `PLACE_TYPES`: Categories to search (default: `["restaurant", "bar", "cafe", "bakery"]`)
+**Search Radius:**
+Specify as second command line argument (default: 100m):
+```bash
+npm start "Your Address" 2000  # 2km radius
+```
+
+**Place Types:**
+Edit `fetch-places.ts` to change `PLACE_TYPES` (default: `["restaurant", "bar", "cafe", "bakery"]`)
 
 ## Excluding Places
 
