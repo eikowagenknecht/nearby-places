@@ -68,6 +68,8 @@ npm run generate-html
 
 **Note:** A typical search of 50 places makes ~150-200 API calls. Check the pricing page for current rates and free tier limits.
 
+📖 **Need detailed instructions?** See the [complete setup guide](GOOGLE_SETUP.md)
+
 ## Customization
 
 Edit `fetch-places.ts` to change:
