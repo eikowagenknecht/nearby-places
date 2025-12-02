@@ -1,8 +1,19 @@
 # Nearby Places
 
-A command-line tool to find restaurants, bars, cafes, and bakeries near any address using the Google Maps API. Generate printable lists and interactive maps to discover new places!
+Find and explore restaurants, bars, cafes, and bakeries near any address using Google Maps API. Generate beautiful, printable lists and interactive maps.
 
-> **Note**: This tool requires a Google Maps API key with billing enabled. You get $200/month free credit, which is typically sufficient for personal use.
+> **Note**: Requires Google Maps API key with billing enabled. Google provides monthly free usage credits - check [current pricing and free tier limits](https://mapsplatform.google.com/pricing/#pay-as-you-go) for details.
+
+## Features
+
+- 🔍 Searches by address with configurable radius (default: 1000m)
+- 📊 Fetches ratings, reviews, prices, hours, and distances
+- 📋 Three visualizations:
+  - **Condensed list**: One-line view with checkboxes, 3-tier ratings (⭐⭐⭐), category icons
+  - **Detailed overview**: Full cards with all information
+  - **Interactive map**: Leaflet.js + OpenStreetMap (free, no extra API key)
+- 💾 Tracks visits with browser localStorage
+- 📍 Sorts results by distance
 
 ## Preview
 
@@ -21,174 +32,77 @@ Explore places on an interactive map.
 
 ![Map View](screenshots/map-view.png)
 
-## Features
+## Quick Start
 
-- Geocodes any address to coordinates
-- Searches for restaurants and bars within 1000m radius
-- Fetches detailed information including:
-  - Ratings and review counts
-  - Price levels
-  - Opening hours
-  - Full addresses
-  - Google Maps URLs
-- Calculates accurate distances using Haversine formula
-- Outputs sorted results to JSON file
-
-## Prerequisites
-
-- Node.js (v18 or higher recommended)
-- Google Maps API key with the following APIs enabled:
-  - Geocoding API
-  - Places API
-
-## Installation
-
+**1. Install dependencies:**
 ```bash
-cd nearby-places
 npm install
 ```
 
-Create a `.env` file in the project root:
-
+**2. Set up API key:**
 ```bash
 cp .env.example .env
+# Edit .env and add your Google Maps API key
 ```
 
-Then edit the `.env` file and add your Google Maps API key:
-
-```
-GOOGLE_API_KEY=your_actual_api_key_here
-```
-
-## Getting a Google Maps API Key
-
-### Step 1: Create a Google Cloud Project
-
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
-2. Sign in with your Google account
-3. Click on the project dropdown at the top of the page
-4. Click "New Project"
-5. Enter a project name (e.g., "Nearby Places")
-6. Click "Create"
-
-### Step 2: Set Up Billing Account
-
-Google Maps APIs require a billing account, but don't worry:
-- You get **$200 free credit per month**
-- You only pay if you exceed this amount
-- For typical use of this tool, you'll stay within the free tier
-
-To set up billing:
-
-1. In the Google Cloud Console, navigate to "Billing" in the left sidebar
-2. Click "Link a billing account" or "Add billing account"
-3. Follow the prompts to enter your payment information
-4. Complete the billing setup
-
-### Step 3: Enable Required APIs
-
-1. In the Google Cloud Console, make sure your new project is selected
-2. Navigate to "APIs & Services" > "Library" (use the left sidebar menu)
-3. Search for "Geocoding API" and click on it
-4. Click the "Enable" button
-5. Go back to the API Library
-6. Search for "Places API" and click on it
-   - Note: You can enable either "Places API" or "Places API (new)" - both work
-7. Click the "Enable" button
-
-### Step 4: Create API Credentials
-
-1. Navigate to "APIs & Services" > "Credentials"
-2. Click "Create Credentials" at the top
-3. Select "API key"
-4. Your API key will be created and displayed
-5. Copy the API key - you'll need it to run the tool
-
-### Step 5: (Optional but Recommended) Restrict Your API Key
-
-To prevent unauthorized use and unexpected charges:
-
-1. In the API key dialog, click "Edit API key" (or find your key in the Credentials list)
-2. Under "API restrictions":
-   - Select "Restrict key"
-   - Check "Geocoding API"
-   - Check "Places API"
-3. Under "Application restrictions" (optional):
-   - You can restrict by IP address if you want additional security
-4. Click "Save"
-
-## Usage
-
-Once you've set up your `.env` file with your API key, simply run:
-
+**3. Fetch places:**
 ```bash
-npm start "Your Street 123, 30159 Hannover"
+npm start "Kröpcke, 30159 Hannover"
 ```
 
-The tool will automatically load your API key from the `.env` file.
-
-## Viewing Results
-
-After fetching places, you can generate HTML visualizations:
-
+**4. Generate visualizations:**
 ```bash
 npm run generate-html
+# Open list.html, overview.html, or map.html in your browser
 ```
 
-This creates three files:
+## Google Maps API Setup
 
-1. **list.html** - Condensed quick list
-   - Minimal one-line view with checkboxes
-   - Shows only: name, rating, distance, price level
-   - Perfect for quick scanning and printing
-   - Saves your visit history in browser localStorage
+**Quick steps:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create new project
+3. Enable billing (required - includes monthly free tier, see [pricing](https://mapsplatform.google.com/pricing/#pay-as-you-go))
+4. Enable "Geocoding API" and "Places API" (or "Places API (new)")
+5. Create API key under "APIs & Services" > "Credentials"
+6. (Recommended) Restrict key to Geocoding + Places APIs
 
-2. **overview.html** - Detailed printable checklist
-   - Track which places you've visited with checkboxes
-   - Shows ratings, hours, distance, and price levels
-   - Full details in card layout
-   - Print-friendly with all information
+**Note:** A typical search of 50 places makes ~150-200 API calls. Check the pricing page for current rates and free tier limits.
 
-3. **map.html** - Interactive map view
-   - All places displayed on an OpenStreetMap
-   - Click markers to see place details
-   - Blue center marker shows your search location
-   - Free and doesn't require additional API keys
+## Customization
 
-Open these HTML files directly in your browser!
+Edit `fetch-places.ts` to change:
+- `RADIUS_METERS`: Search radius in meters (default: 1000)
+- `PLACE_TYPES`: Categories to search (default: `["restaurant", "bar", "cafe", "bakery"]`)
 
-## Output
+## Gathered Data (JSON)
 
-The tool generates a `places.json` file containing an array of places with the following information:
+Raw data is saved to `places.json` with the following structure:
 
 ```json
 [
   {
-    "name": "Restaurant Name",
-    "types": ["restaurant", "bar"],
-    "distance_meters": 250,
-    "rating": 4.5,
-    "review_count": 123,
+    "name": "Restaurant Palios",
+    "types": ["restaurant"],
+    "distance_meters": 49,
+    "location": {
+      "lat": 52.4198123,
+      "lng": 9.7986456
+    },
+    "rating": 4.6,
+    "review_count": 1593,
     "price_level": 2,
     "opening_hours": {
-      "monday": "11:00 AM – 10:00 PM",
-      "tuesday": "11:00 AM – 10:00 PM",
+      "monday": "Closed",
+      "tuesday": "11:30 AM – 2:30 PM, 5:00 – 10:00 PM",
       ...
     },
-    "address": "Full Street Address",
+    "address": "Kurze-Kamp-Straße 1, 30659 Hannover, Germany",
     "google_maps_url": "https://maps.google.com/?cid=..."
   }
 ]
 ```
 
 Results are sorted by distance from the specified address.
-
-## Customization
-
-You can modify the following constants in `fetch-places.ts`:
-
-- `RADIUS_METERS`: Search radius (default: 1000)
-- `PLACE_TYPES`: Types of places to search for (default: ["restaurant", "bar"])
 
 ## License
 
