@@ -7,6 +7,7 @@ Find and explore restaurants, bars, cafes, and bakeries near any address using G
 ## Features
 
 - 🔍 Searches by address with configurable radius (default: 1000m)
+- 🎯 **Smart adaptive search**: Automatically subdivides large search areas only when needed to find all places (no API limit issues)
 - 📊 Fetches ratings, reviews, prices, hours, and distances
 - 📋 Three visualizations:
   - **Condensed list**: One-line view with checkboxes, 3-tier ratings (⭐⭐⭐), category icons

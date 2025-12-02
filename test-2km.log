@@ -1,0 +1,41 @@
+
+> nearby-places@1.0.0 start
+> tsx fetch-places.ts Burgwedeler Str. 77, 30657 Hannover
+
+
+Searching for bars and restaurants within 1000m of "Burgwedeler Str. 77, 30657 Hannover"
+
+Geocoded "Burgwedeler Str. 77, 30657 Hannover" to 52.4196882, 9.7984223
+Fetched 15 restaurants (total: 15)
+Fetched 5 bars (total: 5)
+Fetched 5 cafes (total: 5)
+Fetched 7 bakerys (total: 7)
+
+Found 24 unique places
+
+Fetching details 1/24: Steakhouse Kampe
+Fetching details 2/24: Restaurant Palios
+Fetching details 3/24: NUOVO Restaurant & Bar
+Fetching details 4/24: China Restaurant Panda Hannover
+Fetching details 5/24: H'Vin Bistro, Bar und Events
+Fetching details 6/24: Trattoria Il Padrino
+Fetching details 7/24: El Chileno Restaurant
+Fetching details 8/24: Bothfeld City Döner
+Fetching details 9/24: Rocca Massima
+Fetching details 10/24: Mozzeria Restaurant
+Fetching details 11/24: Levante
+Fetching details 12/24: NUOVO Cafe & Bistro
+Fetching details 13/24: Toms 2
+Fetching details 14/24: Retro Café
+Fetching details 15/24: Max & Moritz GrillMobil
+Fetching details 16/24: Gaststätte Köpinski
+Fetching details 17/24: Star
+Fetching details 18/24: Tiny Town (nur mit Reservierung)
+Fetching details 19/24: TotalEnergies Tankstelle
+Fetching details 20/24: MPArtCreate - kreativ.gesund.glücklich
+Fetching details 21/24: Bäcker Göing
+Fetching details 22/24: Baker Street
+Fetching details 23/24: Schäfer's Brot- und Kuchenspezialitäten GmbH Fil. E-Neukauf
+Fetching details 24/24: Zucker,Zimt&Liebe
+
+Done! Saved 24 places to places.json
