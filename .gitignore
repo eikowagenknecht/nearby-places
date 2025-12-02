@@ -1,0 +1,6 @@
+node_modules/
+.env
+places.json
+overview.html
+list.html
+map.html
