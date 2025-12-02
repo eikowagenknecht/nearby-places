@@ -14,6 +14,7 @@ Find and explore restaurants, bars, cafes, and bakeries near any address using G
   - **Detailed overview**: Full cards with all information
   - **Interactive map**: Leaflet.js + OpenStreetMap (free, no extra API key)
 - 💾 Tracks visits with browser localStorage
+- 🚫 **Exclusion feature**: One-click copy of checked places to exclude from future searches
 - 📍 Sorts results by distance
 
 ## Preview
@@ -83,6 +84,26 @@ Check the [pricing page](https://mapsplatform.google.com/pricing/#pay-as-you-go)
 Edit `fetch-places.ts` to change:
 - `RADIUS_METERS`: Search radius in meters (default: 1000)
 - `PLACE_TYPES`: Categories to search (default: `["restaurant", "bar", "cafe", "bakery"]`)
+
+## Excluding Places
+
+Want to filter out specific places from your results? Use the exclusion feature:
+
+1. Open `list.html` in your browser
+2. Check the places you want to exclude
+3. Click "Copy Exclude List" button at the bottom
+4. Create an `exclude.json` file in the main folder and paste the copied content
+5. Run the fetch command again - excluded places won't appear in the results
+
+**Example `exclude.json`:**
+```json
+[
+  "places/ChIJN1t_tDeuEmsRUsoyG83frY4",
+  "places/ChIJ3S-JXmauEmsRnziM7d1kkOk"
+]
+```
+
+The button automatically formats the list for you and shows how many places are selected. It won't show when printing!
 
 ## Gathered Data (JSON)
 

@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync, existsSync } from "fs";
 import "dotenv/config";
 
 const API_KEY = process.env.GOOGLE_API_KEY;
@@ -34,6 +34,7 @@ interface PlaceBasic {
 }
 
 interface PlaceDetailed {
+  place_id: string;
   name: string;
   types: string[];
   distance_meters: number;
@@ -250,6 +251,26 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function loadExcludeList(): Set<string> {
+  const excludeFile = "exclude.json";
+  if (!existsSync(excludeFile)) {
+    return new Set();
+  }
+
+  try {
+    const content = readFileSync(excludeFile, "utf-8");
+    const excluded = JSON.parse(content);
+    if (!Array.isArray(excluded)) {
+      console.warn("⚠️  exclude.json is not an array, ignoring");
+      return new Set();
+    }
+    return new Set(excluded);
+  } catch (err) {
+    console.warn(`⚠️  Failed to load exclude.json: ${err}`);
+    return new Set();
+  }
+}
+
 async function main() {
   const address = process.argv[2];
 
@@ -262,6 +283,12 @@ async function main() {
 
   // Step 1: Geocode address
   const origin = await geocodeAddress(address);
+
+  // Step 1.5: Load exclude list
+  const excludeList = loadExcludeList();
+  if (excludeList.size > 0) {
+    console.log(`📋 Loaded ${excludeList.size} excluded place(s) from exclude.json\n`);
+  }
 
   // Step 2: Adaptive search - try full radius first, subdivide only if needed
   const allPlaces: PlaceBasic[] = [];
@@ -318,11 +345,15 @@ async function main() {
     }
   }
 
-  // Step 5: Filter to only places within requested radius from origin
+  // Step 5: Filter to only places within requested radius from origin and not excluded
   const filtered = Array.from(uniquePlaces.values()).filter((place) => {
     const distance = haversineDistance(origin, place.location);
-    return distance <= RADIUS_METERS;
+    const isWithinRadius = distance <= RADIUS_METERS;
+    const isNotExcluded = !excludeList.has(place.place_id);
+    return isWithinRadius && isNotExcluded;
   });
+
+  const excludedCount = uniquePlaces.size - filtered.length - Array.from(uniquePlaces.values()).filter(p => haversineDistance(origin, p.location) > RADIUS_METERS).length;
 
   // Rebuild map with filtered places
   uniquePlaces.clear();
@@ -330,7 +361,7 @@ async function main() {
     uniquePlaces.set(place.place_id, place);
   }
 
-  console.log(`\nFound ${uniquePlaces.size} unique places within ${RADIUS_METERS}m\n`);
+  console.log(`\nFound ${uniquePlaces.size} unique places within ${RADIUS_METERS}m${excludedCount > 0 ? ` (${excludedCount} excluded)` : ''}\n`);
 
   // Step 6: Fetch details for each place
   const detailedPlaces: PlaceDetailed[] = [];
@@ -349,6 +380,7 @@ async function main() {
     );
 
     detailedPlaces.push({
+      place_id: placeId,
       name: place.name,
       types: relevantTypes.length ? relevantTypes : place.types.slice(0, 3),
       distance_meters: distance,

@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
 
 interface Place {
+  place_id: string;
   name: string;
   types: string[];
   distance_meters: number;
@@ -579,6 +580,28 @@ const condensedHtml = `<!DOCTYPE html>
       white-space: nowrap;
     }
 
+    .export-button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .export-button:hover {
+      background: #1557b0;
+    }
+
+    .export-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
     @media print {
       body {
         background: white;
@@ -593,6 +616,10 @@ const condensedHtml = `<!DOCTYPE html>
       .place-row {
         padding: 4px 0;
         page-break-inside: avoid;
+      }
+
+      .export-button {
+        display: none;
       }
     }
 
@@ -610,7 +637,7 @@ const condensedHtml = `<!DOCTYPE html>
 
   <div class="list-container">
     ${places.map((place, index) => `
-      <div class="place-row">
+      <div class="place-row" data-place-id="${place.place_id}" data-place-name="${place.name.replace(/"/g, '&quot;')}">
         <input type="checkbox" class="checkbox" id="condensed-${index}">
         <label for="condensed-${index}" class="place-name">
           <span>${place.name}</span>
@@ -631,9 +658,12 @@ const condensedHtml = `<!DOCTYPE html>
     `).join('')}
   </div>
 
+  <button class="export-button" id="exportBtn" disabled>Copy Exclude List (0 selected)</button>
+
   <script>
     // Save checkbox state to localStorage
     const checkboxes = document.querySelectorAll('.checkbox');
+    const exportBtn = document.getElementById('exportBtn');
 
     // Load saved state
     checkboxes.forEach((checkbox, index) => {
@@ -644,6 +674,13 @@ const condensedHtml = `<!DOCTYPE html>
         checkbox.closest('.place-row').style.textDecoration = 'line-through';
       }
     });
+
+    // Update export button state
+    function updateExportButton() {
+      const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+      exportBtn.disabled = checkedCount === 0;
+      exportBtn.textContent = \`Copy Exclude List (\${checkedCount} selected)\`;
+    }
 
     // Save on change
     checkboxes.forEach((checkbox, index) => {
@@ -657,6 +694,43 @@ const condensedHtml = `<!DOCTYPE html>
           row.style.opacity = '1';
           row.style.textDecoration = 'none';
         }
+        updateExportButton();
+      });
+    });
+
+    // Initial button state
+    updateExportButton();
+
+    // Export button click handler
+    exportBtn.addEventListener('click', () => {
+      const checkedPlaceIds = [];
+
+      checkboxes.forEach((checkbox) => {
+        if (checkbox.checked) {
+          const row = checkbox.closest('.place-row');
+          const placeId = row.dataset.placeId;
+          if (placeId) {
+            checkedPlaceIds.push(placeId);
+          }
+        }
+      });
+
+      if (checkedPlaceIds.length === 0) return;
+
+      const jsonOutput = JSON.stringify(checkedPlaceIds, null, 2);
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(jsonOutput).then(() => {
+        const originalText = exportBtn.textContent;
+        exportBtn.textContent = '✓ Copied to clipboard!';
+        exportBtn.style.background = '#1e8e3e';
+
+        setTimeout(() => {
+          exportBtn.textContent = originalText;
+          exportBtn.style.background = '#1a73e8';
+        }, 2000);
+      }).catch(err => {
+        alert('Failed to copy to clipboard. Please copy manually:\\n\\n' + jsonOutput);
       });
     });
   </script>
