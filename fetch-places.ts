@@ -11,6 +11,16 @@ if (!API_KEY) {
 const RADIUS_METERS = 1000;
 const PLACE_TYPES = ["restaurant", "bar", "cafe", "bakery"];
 
+// API call tracking
+let apiCallCount = {
+  geocoding: 0,
+  placesSearch: 0,
+  placesDetails: 0,
+  get total() {
+    return this.geocoding + this.placesSearch + this.placesDetails;
+  },
+};
+
 interface Location {
   lat: number;
   lng: number;
@@ -41,6 +51,7 @@ async function geocodeAddress(address: string): Promise<Location> {
   url.searchParams.set("address", address);
   url.searchParams.set("key", API_KEY!);
 
+  apiCallCount.geocoding++;
   const response = await fetch(url);
   const data = await response.json();
 
@@ -116,6 +127,7 @@ async function searchNearby(location: Location, type: string, radius: number): P
       await sleep(2000);
     }
 
+    apiCallCount.placesSearch++;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -165,6 +177,7 @@ async function getPlaceDetails(placeId: string): Promise<{
   const fullPlaceId = placeId.startsWith("places/") ? placeId : `places/${placeId}`;
   const url = `https://places.googleapis.com/v1/${fullPlaceId}`;
 
+  apiCallCount.placesDetails++;
   const response = await fetch(url, {
     method: "GET",
     headers: {
@@ -361,6 +374,11 @@ async function main() {
   writeFileSync(outputFile, output, "utf-8");
 
   console.log(`\nDone! Saved ${detailedPlaces.length} places to ${outputFile}`);
+  console.log(`\n📊 API Usage Summary:`);
+  console.log(`   Geocoding API: ${apiCallCount.geocoding} call${apiCallCount.geocoding !== 1 ? 's' : ''}`);
+  console.log(`   Places Search API: ${apiCallCount.placesSearch} call${apiCallCount.placesSearch !== 1 ? 's' : ''}`);
+  console.log(`   Places Details API: ${apiCallCount.placesDetails} call${apiCallCount.placesDetails !== 1 ? 's' : ''}`);
+  console.log(`   Total: ${apiCallCount.total} API calls`);
 }
 
 main().catch((err) => {

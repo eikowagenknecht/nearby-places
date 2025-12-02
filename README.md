@@ -67,7 +67,14 @@ npm run generate-html
 5. Create API key under "APIs & Services" > "Credentials"
 6. (Recommended) Restrict key to Geocoding + Places APIs
 
-**Note:** A typical search of 50 places makes ~150-200 API calls. Check the pricing page for current rates and free tier limits.
+**API Usage:** The tool reports exact API call counts after each run. Typical usage:
+- Small area (1000m): ~30-50 API calls
+- Large area (2000m, no subdivision needed): ~30-60 API calls
+- Large area (2000m, with adaptive subdivision): ~50-100 API calls
+
+Breakdown: 1 geocoding call + 4-40 search calls (depending on area/subdivision) + 1 details call per place found.
+
+Check the [pricing page](https://mapsplatform.google.com/pricing/#pay-as-you-go) for current rates and free tier limits.
 
 📖 **Need detailed instructions?** See the [complete setup guide](GOOGLE_SETUP.md)
 
