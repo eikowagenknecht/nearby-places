@@ -64,41 +64,60 @@ async function geocodeAddress(address: string): Promise<Location> {
   return location;
 }
 
-function getSearchPoints(center: Location, radius: number): Array<{ location: Location; radius: number }> {
-  const MAX_SEARCH_RADIUS = 1000; // Keep individual searches at 1000m for best results
+async function searchNearbyRecursive(
+  center: Location,
+  radius: number,
+  type: string,
+  minRadius: number = 500,
+  depth: number = 0
+): Promise<PlaceBasic[]> {
+  const indent = "  ".repeat(depth);
 
-  // If radius is small enough, just search once
-  if (radius <= MAX_SEARCH_RADIUS) {
-    return [{ location: center, radius }];
-  }
+  // Do the search at this location/radius
+  console.log(`${indent}Searching ${type}s at ${radius}m radius...`);
+  const results = await searchNearby(center, type, radius);
 
-  // For larger radii, create a grid of overlapping search points
-  const points: Array<{ location: Location; radius: number }> = [];
-
-  // Always search at center
-  points.push({ location: center, radius: MAX_SEARCH_RADIUS });
-
-  // Calculate how many rings we need
-  const rings = Math.ceil(radius / MAX_SEARCH_RADIUS);
-
-  // For each ring (except the center), place points around the circle
-  for (let ring = 1; ring < rings; ring++) {
-    const ringRadius = ring * MAX_SEARCH_RADIUS * 0.8; // 80% to ensure overlap
-    const pointsInRing = Math.max(6, Math.ceil(2 * Math.PI * ring * 1.5)); // More points for outer rings
-
-    for (let i = 0; i < pointsInRing; i++) {
-      const angle = (2 * Math.PI * i) / pointsInRing;
-      const lat = center.lat + (ringRadius / 111320) * Math.cos(angle); // 111320m per degree latitude
-      const lng = center.lng + (ringRadius / (111320 * Math.cos(center.lat * Math.PI / 180))) * Math.sin(angle);
-
-      points.push({
-        location: { lat, lng },
-        radius: MAX_SEARCH_RADIUS,
-      });
+  // If we didn't hit the limit, or radius is too small to subdivide, return results
+  if (results.length < 20 || radius <= minRadius) {
+    if (results.length < 20) {
+      console.log(`${indent}✓ Found ${results.length} ${type}s (no subdivision needed)`);
+    } else {
+      console.log(`${indent}✓ Found ${results.length} ${type}s (minimum radius reached)`);
     }
+    return results;
   }
 
-  return points;
+  console.log(`${indent}⚠️  Hit limit (${results.length} ${type}s) - subdividing into 4 quadrants...`);
+
+  // Calculate new radius (half of current)
+  const newRadius = radius / 2;
+
+  // Calculate offsets for 4 quadrants (NW, NE, SW, SE)
+  const offsetLat = (newRadius / 111320); // ~111320m per degree latitude
+  const offsetLng = (newRadius / (111320 * Math.cos(center.lat * Math.PI / 180)));
+
+  const quadrants = [
+    { name: 'NW', lat: center.lat + offsetLat, lng: center.lng - offsetLng },
+    { name: 'NE', lat: center.lat + offsetLat, lng: center.lng + offsetLng },
+    { name: 'SW', lat: center.lat - offsetLat, lng: center.lng - offsetLng },
+    { name: 'SE', lat: center.lat - offsetLat, lng: center.lng + offsetLng },
+  ];
+
+  // Recursively search each quadrant
+  const allResults: PlaceBasic[] = [];
+  for (const quad of quadrants) {
+    console.log(`${indent}  → ${quad.name} quadrant:`);
+    const quadResults = await searchNearbyRecursive(
+      { lat: quad.lat, lng: quad.lng },
+      newRadius,
+      type,
+      minRadius,
+      depth + 1
+    );
+    allResults.push(...quadResults);
+  }
+
+  return allResults;
 }
 
 async function searchNearby(location: Location, type: string, radius: number): Promise<PlaceBasic[]> {
@@ -300,50 +319,19 @@ async function main() {
     console.log(`📋 Loaded ${excludeList.size} excluded place(s) from exclude.json\n`);
   }
 
-  // Step 2: Adaptive search - try full radius first, subdivide only if needed
+  // Step 2: Recursive search with smart subdivision
   const allPlaces: PlaceBasic[] = [];
-  const hitLimitTypes = new Set<string>();
 
-  console.log(`Attempting search with full ${RADIUS_METERS}m radius...\n`);
+  console.log(`Starting recursive search with ${RADIUS_METERS}m radius...\n`);
 
   for (const type of PLACE_TYPES) {
-    const places = await searchNearby(origin, type, RADIUS_METERS);
+    console.log(`\n🔍 Searching for ${type}s:`);
+    const places = await searchNearbyRecursive(origin, RADIUS_METERS, type);
     allPlaces.push(...places);
-
-    // Check if we hit the 20-result limit (might be missing places)
-    if (places.length >= 20) {
-      hitLimitTypes.add(type);
-      console.log(`  ⚠️  Hit result limit for ${type}s (${places.length} found) - will subdivide search`);
-    }
+    console.log(`  Total ${type}s found: ${places.length}\n`);
   }
 
-  // Step 3: If we hit limits and radius is large, do subdivided search for those types
-  if (hitLimitTypes.size > 0 && RADIUS_METERS > 1000) {
-    const searchPoints = getSearchPoints(origin, RADIUS_METERS);
-    console.log(`\n🔍 Performing detailed search using ${searchPoints.length} points for ${hitLimitTypes.size} type(s)...\n`);
-
-    for (const type of hitLimitTypes) {
-      // Remove initial results for this type
-      const initialCount = allPlaces.length;
-      for (let i = allPlaces.length - 1; i >= 0; i--) {
-        if (allPlaces[i].types.includes(type)) {
-          allPlaces.splice(i, 1);
-        }
-      }
-
-      // Search at all grid points
-      for (let i = 0; i < searchPoints.length; i++) {
-        const point = searchPoints[i];
-        console.log(`  Searching ${type}s at point ${i + 1}/${searchPoints.length}...`);
-        const places = await searchNearby(point.location, type, point.radius);
-        allPlaces.push(...places);
-      }
-    }
-  } else if (hitLimitTypes.size === 0) {
-    console.log(`✓ All place types found complete results (no subdividing needed)\n`);
-  }
-
-  // Step 4: Deduplicate by place_id
+  // Step 3: Deduplicate by place_id
   const uniquePlaces = new Map<string, PlaceBasic>();
   for (const place of allPlaces) {
     if (!uniquePlaces.has(place.place_id)) {
@@ -355,7 +343,7 @@ async function main() {
     }
   }
 
-  // Step 5: Filter to only places within requested radius from origin and not excluded
+  // Step 4: Filter to only places within requested radius from origin and not excluded
   const filtered = Array.from(uniquePlaces.values()).filter((place) => {
     const distance = haversineDistance(origin, place.location);
     const isWithinRadius = distance <= RADIUS_METERS;
@@ -373,7 +361,7 @@ async function main() {
 
   console.log(`\nFound ${uniquePlaces.size} unique places within ${RADIUS_METERS}m${excludedCount > 0 ? ` (${excludedCount} excluded)` : ''}\n`);
 
-  // Step 6: Fetch details for each place
+  // Step 5: Fetch details for each place
   const detailedPlaces: PlaceDetailed[] = [];
   let count = 0;
 
@@ -407,10 +395,10 @@ async function main() {
     await sleep(100);
   }
 
-  // Step 5: Sort by distance
+  // Step 6: Sort by distance
   detailedPlaces.sort((a, b) => a.distance_meters - b.distance_meters);
 
-  // Step 6: Output JSON
+  // Step 7: Output JSON
   const outputFile = "places.json";
   const output = JSON.stringify(detailedPlaces, null, 2);
   writeFileSync(outputFile, output, "utf-8");
