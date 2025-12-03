@@ -689,17 +689,19 @@ const condensedHtml = `<!DOCTYPE html>
   <button class="export-button" id="exportBtn" disabled>Copy Exclude List (0 selected)</button>
 
   <script>
-    // Save checkbox state to localStorage
+    // Save checkbox state to localStorage using place IDs
     const checkboxes = document.querySelectorAll('.checkbox');
     const exportBtn = document.getElementById('exportBtn');
 
     // Load saved state
-    checkboxes.forEach((checkbox, index) => {
-      const saved = localStorage.getItem(\`condensed-\${index}\`);
+    checkboxes.forEach((checkbox) => {
+      const row = checkbox.closest('.place-row');
+      const placeId = row.dataset.placeId;
+      const saved = localStorage.getItem(\`place-\${placeId}\`);
       if (saved === 'true') {
         checkbox.checked = true;
-        checkbox.closest('.place-row').style.opacity = '0.5';
-        checkbox.closest('.place-row').style.textDecoration = 'line-through';
+        row.style.opacity = '0.5';
+        row.style.textDecoration = 'line-through';
       }
     });
 
@@ -711,10 +713,11 @@ const condensedHtml = `<!DOCTYPE html>
     }
 
     // Save on change
-    checkboxes.forEach((checkbox, index) => {
+    checkboxes.forEach((checkbox) => {
       checkbox.addEventListener('change', (e) => {
-        localStorage.setItem(\`condensed-\${index}\`, e.target.checked);
         const row = e.target.closest('.place-row');
+        const placeId = row.dataset.placeId;
+        localStorage.setItem(\`place-\${placeId}\`, e.target.checked);
         if (e.target.checked) {
           row.style.opacity = '0.5';
           row.style.textDecoration = 'line-through';
