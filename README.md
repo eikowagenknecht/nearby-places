@@ -90,7 +90,7 @@ npm start "Your Address" 2000  # 2km radius
 ```
 
 **Place Types:**
-Edit `fetch-places.ts` to change `PLACE_TYPES` (default: `["restaurant", "bar", "cafe", "bakery", "ice_cream_shop", "meal_takeaway", "meal_delivery"]`)
+Edit `fetch-places.ts` to change `PLACE_TYPES` (default: `["restaurant", "bar", "cafe", "bakery", "ice_cream_shop", "meal_takeaway", "meal_delivery", "fast_food_restaurant"]`)
 
 ## Excluding Places
 

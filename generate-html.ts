@@ -68,7 +68,8 @@ function getPlaceIcons(types: string[]): string {
     "night_club": "🎵",
     "meal_takeaway": "🥡",
     "meal_delivery": "🚚",
-    "ice_cream_shop": "🍦"
+    "ice_cream_shop": "🍦",
+    "fast_food_restaurant": "🍔"
   };
 
   // Collect all matching icons
