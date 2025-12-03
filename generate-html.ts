@@ -557,13 +557,13 @@ const condensedHtml = `<!DOCTYPE html>
     .place-name {
       flex: 1;
       min-width: 0;
-    }
-
-    .place-link {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .place-link {
       font-weight: 500;
       color: #1a73e8;
       text-decoration: none;
@@ -678,13 +678,11 @@ const condensedHtml = `<!DOCTYPE html>
       <div class="place-row" data-place-id="${place.place_id}" data-place-name="${place.name.replace(/"/g, '&quot;')}">
         <input type="checkbox" class="checkbox" id="condensed-${index}">
         <div class="place-name">
-          <a href="${place.google_maps_url}" target="_blank" class="place-link">
-            <span>${place.name}</span>
-            <span style="font-size: 16px; margin: 0 6px;">${getPlaceIcons(place.types)}</span>
-            <span class="place-meta">
-              ${formatDistance(place.distance_meters)}${place.price_level !== null ? ` • ${getPriceLevelSymbol(place.price_level)}` : ''}
-            </span>
-          </a>
+          <a href="${place.google_maps_url}" target="_blank" class="place-link">${place.name}</a>
+          <span style="font-size: 16px; margin: 0 6px;">${getPlaceIcons(place.types)}</span>
+          <span class="place-meta">
+            ${formatDistance(place.distance_meters)}${place.price_level !== null ? ` • ${getPriceLevelSymbol(place.price_level)}` : ''}
+          </span>
         </div>
         <div class="place-info">
           ${place.rating ? `
