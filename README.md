@@ -94,13 +94,13 @@ Edit `fetch-places.ts` to change `PLACE_TYPES` (default: `["restaurant", "bar", 
 
 ## Excluding Places
 
-Want to filter out specific places from your results? Use the exclusion feature:
+Want to filter out specific places? Use the exclusion feature - **no re-fetching needed!**
 
 1. Open `list.html` in your browser
 2. Check the places you want to exclude
 3. Click "Copy Exclude List" button at the bottom
-4. Create an `exclude.json` file in the main folder and paste the copied content
-5. Run the fetch command again - excluded places won't appear in the results
+4. Create/edit `exclude.json` file in the main folder and paste the copied content
+5. Run `npm run generate-html` - excluded places won't appear (no API calls!)
 
 **Example `exclude.json`:**
 ```json
@@ -109,6 +109,11 @@ Want to filter out specific places from your results? Use the exclusion feature:
   "places/ChIJ3S-JXmauEmsRnziM7d1kkOk"
 ]
 ```
+
+**Why this is efficient:** Exclusions are applied during HTML generation, not during fetch. This means:
+- ✅ Adjust your exclusion list as many times as you want
+- ✅ No API calls needed to see changes
+- ✅ Instant HTML regeneration
 
 The button automatically formats the list for you and shows how many places are selected. It won't show when printing!
 

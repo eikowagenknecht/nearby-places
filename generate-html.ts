@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 
 interface Place {
   place_id: string;
@@ -14,7 +14,35 @@ interface Place {
   google_maps_url: string;
 }
 
-const places: Place[] = JSON.parse(readFileSync("places.json", "utf-8"));
+function loadExcludeList(): Set<string> {
+  const excludeFile = "exclude.json";
+  if (!existsSync(excludeFile)) {
+    return new Set();
+  }
+
+  try {
+    const content = readFileSync(excludeFile, "utf-8");
+    const excluded = JSON.parse(content);
+    if (!Array.isArray(excluded)) {
+      console.warn("⚠️  exclude.json is not an array, ignoring");
+      return new Set();
+    }
+    console.log(`📋 Loaded ${excluded.length} excluded place(s) from exclude.json`);
+    return new Set(excluded);
+  } catch (err) {
+    console.warn(`⚠️  Failed to load exclude.json: ${err}`);
+    return new Set();
+  }
+}
+
+const allPlaces: Place[] = JSON.parse(readFileSync("places.json", "utf-8"));
+const excludeList = loadExcludeList();
+const places: Place[] = allPlaces.filter(place => !excludeList.has(place.place_id));
+
+if (excludeList.size > 0) {
+  const excludedCount = allPlaces.length - places.length;
+  console.log(`✓ Filtered out ${excludedCount} excluded place(s)\n`);
+}
 
 // Calculate center point for map
 const avgLat = places.reduce((sum, p) => sum + p.location.lat, 0) / places.length;
