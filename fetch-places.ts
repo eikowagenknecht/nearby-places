@@ -89,18 +89,20 @@ async function searchNearbyRecursive(
 
   console.log(`${indent}⚠️  Hit limit (${results.length} ${type}s) - subdividing into 4 quadrants...`);
 
-  // Calculate new radius (half of current)
-  const newRadius = radius / 2;
+  // Calculate quadrant parameters with overlap to ensure full coverage
+  // Offset centers by radius/2, but use larger radius (75% of original) for overlap
+  const offsetDistance = radius / 2;
+  const quadrantRadius = Math.round(radius * 0.75); // 50% overlap ensures no gaps
 
   // Calculate offsets for 4 quadrants (NW, NE, SW, SE)
-  const offsetLat = (newRadius / 111320); // ~111320m per degree latitude
-  const offsetLng = (newRadius / (111320 * Math.cos(center.lat * Math.PI / 180)));
+  const offsetLat = (offsetDistance / 111320); // ~111320m per degree latitude
+  const offsetLng = (offsetDistance / (111320 * Math.cos(center.lat * Math.PI / 180)));
 
   const quadrants = [
-    { name: 'NW', lat: center.lat + offsetLat, lng: center.lng - offsetLng },
-    { name: 'NE', lat: center.lat + offsetLat, lng: center.lng + offsetLng },
-    { name: 'SW', lat: center.lat - offsetLat, lng: center.lng - offsetLng },
-    { name: 'SE', lat: center.lat - offsetLat, lng: center.lng + offsetLng },
+    { name: 'NW', lat: center.lat + offsetLat, lng: center.lng - offsetLng, radius: quadrantRadius },
+    { name: 'NE', lat: center.lat + offsetLat, lng: center.lng + offsetLng, radius: quadrantRadius },
+    { name: 'SW', lat: center.lat - offsetLat, lng: center.lng - offsetLng, radius: quadrantRadius },
+    { name: 'SE', lat: center.lat - offsetLat, lng: center.lng + offsetLng, radius: quadrantRadius },
   ];
 
   // Keep initial results AND recursively search each quadrant
@@ -109,7 +111,7 @@ async function searchNearbyRecursive(
     console.log(`${indent}  → ${quad.name} quadrant:`);
     const quadResults = await searchNearbyRecursive(
       { lat: quad.lat, lng: quad.lng },
-      newRadius,
+      quad.radius,
       type,
       minRadius,
       depth + 1
