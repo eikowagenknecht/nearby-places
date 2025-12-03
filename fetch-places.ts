@@ -8,7 +8,7 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-const PLACE_TYPES = ["restaurant", "bar", "cafe", "bakery"];
+const PLACE_TYPES = ["restaurant", "bar", "cafe", "bakery", "ice_cream_shop"];
 
 // API call tracking
 let apiCallCount = {
