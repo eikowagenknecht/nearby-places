@@ -602,9 +602,16 @@ const condensedHtml = `<!DOCTYPE html>
     }
 
     .rating-number {
-      font-size: 11px;
+      font-size: 13px;
       color: #666;
-      font-weight: 500;
+      font-weight: 600;
+    }
+
+    .rating-count {
+      font-size: 11px;
+      color: #999;
+      font-weight: normal;
+      margin-left: 2px;
     }
 
     .distance {
@@ -687,8 +694,9 @@ const condensedHtml = `<!DOCTYPE html>
         <div class="place-info">
           ${place.rating ? `
             <span class="rating">
+              <span class="rating-number">${place.rating.toFixed(1)}</span>
+              <span class="rating-count">(${place.review_count})</span>
               <span class="rating-stars">${getRatingStars(place.rating)}</span>
-              <span class="rating-number">${place.rating}</span>
             </span>
           ` : ''}
         </div>
